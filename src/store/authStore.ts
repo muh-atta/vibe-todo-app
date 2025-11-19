@@ -5,7 +5,7 @@ import { User } from '@/types/user';
 interface AuthState {
   currentUser: User | null;
   users: User[];
-  login: (username: string, email: string) => void;
+  login: (username: string, email: string, password: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -17,7 +17,7 @@ export const useAuthStore = create<AuthState>()(
       users: [],
       isAuthenticated: false,
 
-      login: (username: string, email: string) => {
+      login: (username: string, email: string, password: string) => {
         set((state) => {
           // Check if user exists
           let user = state.users.find((u) => u.email === email);
@@ -28,6 +28,7 @@ export const useAuthStore = create<AuthState>()(
               id: crypto.randomUUID(),
               username,
               email,
+              password, // Store the password for credentials login
             };
             return {
               currentUser: user,
@@ -36,7 +37,13 @@ export const useAuthStore = create<AuthState>()(
             };
           }
           
-          // If user exists, just log them in
+          // If user exists, check password
+          if (user.password !== password) {
+            // In a real app, you would hash and compare passwords
+            throw new Error('Invalid password');
+          }
+          
+          // If user exists and password is correct, just log them in
           return {
             currentUser: user,
             isAuthenticated: true,
